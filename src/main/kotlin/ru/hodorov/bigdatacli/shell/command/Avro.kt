@@ -17,7 +17,6 @@ import java.io.BufferedInputStream
 
 @ShellComponent
 class Avro(
-    val fs: FileSystem,
     val hdfsService: HdfsService,
     val fsContext: FsContext,
     @Lazy val terminal: TerminalService
@@ -34,7 +33,7 @@ class Avro(
 
         terminal.println("Use first founded file: ${file.path}")
 
-        BufferedInputStream(fs.open(file.path)).use { inStream ->
+        BufferedInputStream(fsContext.fs.open(file.path)).use { inStream ->
             val reader: DataFileStream<GenericData.Record> = DataFileStream(inStream, GenericDatumReader())
             val schema = reader.schema
             terminal.println(schema.toString(true))

@@ -5,6 +5,7 @@ import org.apache.hadoop.fs.FileStatus
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.Path
 import org.springframework.stereotype.Service
+import ru.hodorov.bigdatacli.utils.FsContext
 import java.util.*
 import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.RecursiveTask
@@ -14,17 +15,17 @@ private val log = KotlinLogging.logger { }
 
 @Service
 class HdfsService(
-    private val fs: FileSystem,
+    private val fsContext: FsContext,
     private val fjp: ForkJoinPool
 ) {
 
     // Stream (lazy) variant
     fun readFileOrFolder(path: Path): Stream<FileStatus> {
-        val fileStatus = fs.getFileStatus(path)
+        val fileStatus = fsContext.fs.getFileStatus(path)
         log.trace("Process {}", fileStatus)
 
         return when {
-            fileStatus.isDirectory -> Arrays.stream(fs.listStatus(path))
+            fileStatus.isDirectory -> Arrays.stream(fsContext.fs.listStatus(path))
             fileStatus.isFile -> Stream.of(fileStatus)
             else -> throw IllegalStateException("Unknown FileStatus: $fileStatus")
         }
@@ -36,7 +37,7 @@ class HdfsService(
 
     // FJP (parallel) variant
     fun getFileStatusesRecursive(path: Path): List<FileStatus> {
-        return fjp.invoke(RecursiveFileStatusTask(fs, fs.getFileStatus(path)))
+        return fjp.invoke(RecursiveFileStatusTask(fsContext.fs, fsContext.fs.getFileStatus(path)))
     }
 
     private class RecursiveFileStatusTask(

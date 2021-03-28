@@ -9,9 +9,11 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hdfs.DistributedFileSystem
 import org.apache.hadoop.hdfs.client.HdfsClientConfigKeys
 import org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import ru.hodorov.bigdatacli.utils.DFSUtil
+import java.net.URI
 
 private val log = KotlinLogging.logger { }
 
@@ -29,11 +31,19 @@ class HdfsConfig(
 ) {
 
     @Bean
-    fun fsBean(): FileSystem {
+    @Qualifier("hdfs")
+    fun hdfsBean(): FileSystem {
         val configuration = hdfsConfiguration()
         val user = configuration[CommonConfigurationKeys.HADOOP_SECURITY_SERVICE_USER_NAME_KEY]
         log.info("Init hdfs connection: $hdfsUrl / $user")
         return FileSystem.get(FileSystem.getDefaultUri(configuration), configuration, user)
+    }
+
+    @Bean
+    @Qualifier("local")
+    fun localFsBean(): FileSystem {
+        val configuration = hdfsConfiguration()
+        return FileSystem.get(URI(FileSystem.DEFAULT_FS), configuration)
     }
 
 

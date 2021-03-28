@@ -13,7 +13,6 @@ import ru.hodorov.bigdatacli.utils.FsContext
 
 @Component
 class PathCompleteProvider(
-    val fs: FileSystem,
     val fsContext: FsContext
 ) : ValueProvider {
 
@@ -26,16 +25,16 @@ class PathCompleteProvider(
         val curWord = completionContext.currentWordUpToCursor()
         val curWordSlashIndex = curWord.indexOfFirst { it == '/' }
         val path = fsContext.currentUri.append(completionContext.currentWordUpToCursor()).toHadoopPath()
-        if (fs.exists(path)) {
-            if (fs.isDirectory(path)) {
-                return fs.listStatus(path).map { CompletionProposal("${if (curWordSlashIndex == -1) "." else curWord.substring(0, curWordSlashIndex)}/${fsContext.currentUri.relativize(it.path.toUri())}") }
+        if (fsContext.fs.exists(path)) {
+            if (fsContext.fs.isDirectory(path)) {
+                return fsContext.fs.listStatus(path).map { CompletionProposal("${if (curWordSlashIndex == -1) "." else curWord.substring(0, curWordSlashIndex)}/${fsContext.currentUri.relativize(it.path.toUri())}") }
             }
         } else {
             var uri = path.toUri().toString()
             uri = uri.substring(0, uri.indexOfLast { it == '/' })
             val parentPath = Path(uri)
-            if (fs.isDirectory(parentPath)) {
-                return fs.listStatus(parentPath).map { CompletionProposal("${if (curWordSlashIndex == -1) "." else curWord.substring(0, curWordSlashIndex)}/${fsContext.currentUri.relativize(it.path.toUri())}") }
+            if (fsContext.fs.isDirectory(parentPath)) {
+                return fsContext.fs.listStatus(parentPath).map { CompletionProposal("${if (curWordSlashIndex == -1) "." else curWord.substring(0, curWordSlashIndex)}/${fsContext.currentUri.relativize(it.path.toUri())}") }
             }
         }
 
