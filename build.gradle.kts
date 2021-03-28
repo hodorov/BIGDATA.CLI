@@ -18,6 +18,8 @@ repositories {
 val kotlinLoggingVersion = "2.0.6"
 val springShellVersion = "2.0.0.RELEASE"
 val hadoopVersion = "3.3.0"
+val avroVersion = "1.10.2"
+val snappyVersion = "1.1.8.4"
 
 // From Hadoop libraries
 configurations {
@@ -44,6 +46,8 @@ dependencies {
 
     // Hadoop
     implementation("org.apache.hadoop:hadoop-client:$hadoopVersion")
+    implementation("org.apache.avro:avro:$avroVersion")
+    implementation("org.xerial.snappy:snappy-java:$snappyVersion")
 //    implementation("org.apache.hadoop:hadoop-hdfs:$hadoopVersion")
 }
 
