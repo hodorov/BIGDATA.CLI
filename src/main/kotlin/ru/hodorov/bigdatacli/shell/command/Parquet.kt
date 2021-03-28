@@ -12,6 +12,8 @@ import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
 import ru.hodorov.bigdatacli.extends.append
 import ru.hodorov.bigdatacli.extends.toHadoopPath
+import ru.hodorov.bigdatacli.model.AvroSchemaMapper
+import ru.hodorov.bigdatacli.model.ParquetSchemaMapper
 import ru.hodorov.bigdatacli.service.HdfsService
 import ru.hodorov.bigdatacli.service.TerminalService
 import ru.hodorov.bigdatacli.utils.FsContext
@@ -37,7 +39,13 @@ class Parquet(
 
         ParquetFileReader.open(HadoopInputFile.fromPath(file.path, fsContext.fs.conf)).use { reader ->
             val schema = reader.footer.fileMetaData.schema
+
+            terminal.println("Original schema")
             terminal.println(schema)
+
+            val unifiedSchema = ParquetSchemaMapper.toUnifiedModel(schema)
+            terminal.println("Unified schema")
+            terminal.println(unifiedSchema)
         }
     }
 }

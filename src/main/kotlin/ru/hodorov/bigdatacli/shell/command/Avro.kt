@@ -10,6 +10,7 @@ import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
 import ru.hodorov.bigdatacli.extends.append
 import ru.hodorov.bigdatacli.extends.toHadoopPath
+import ru.hodorov.bigdatacli.model.AvroSchemaMapper
 import ru.hodorov.bigdatacli.service.HdfsService
 import ru.hodorov.bigdatacli.service.TerminalService
 import ru.hodorov.bigdatacli.utils.FsContext
@@ -36,7 +37,12 @@ class Avro(
         BufferedInputStream(fsContext.fs.open(file.path)).use { inStream ->
             val reader: DataFileStream<GenericData.Record> = DataFileStream(inStream, GenericDatumReader())
             val schema = reader.schema
+            terminal.println("Original schema")
             terminal.println(schema.toString(true))
+
+            val unifiedSchema = AvroSchemaMapper.toUnifiedModel(schema)
+            terminal.println("Unified schema")
+            terminal.println(unifiedSchema)
         }
     }
 }
