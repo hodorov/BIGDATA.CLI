@@ -18,7 +18,8 @@ abstract class SchemaMapper<R, S, T, ST>(
     mappers: List<Pair<UnifiedFieldJavaType, Mapper>>,
     typeMapping: List<Pair<T, UnifiedFieldType>>,
     subTypeMapping: List<Pair<ST, UnifiedFieldSubType>>,
-    typePairsToUnifiedJavaType: List<Pair<Pair<UnifiedFieldType, UnifiedFieldSubType>, UnifiedFieldJavaType>>
+    typePairsToUnifiedJavaType: List<Pair<Pair<UnifiedFieldType, UnifiedFieldSubType>, UnifiedFieldJavaType>>,
+    val rawNull: Any? = null
 ) {
 
     private val mappersByUnifiedJavaType = mappers.toMap()
@@ -76,7 +77,10 @@ abstract class SchemaMapper<R, S, T, ST>(
         return typePairByUnifiedJavaType[unifiedJavaType] ?: error("($name)Can't convert $unifiedJavaType to type pair")
     }
 
-    fun convertUnifiedToRawValue(value: Any, unifiedJavaType: UnifiedFieldJavaType): Any {
+    fun convertUnifiedToRawValue(value: Any?, unifiedJavaType: UnifiedFieldJavaType): Any? {
+        if (value == null) {
+            return rawNull
+        }
         val mapper = mappersByUnifiedJavaType[unifiedJavaType] ?: error("($name)No converter for $unifiedJavaType")
         val converter = mapper.toRaw ?: error("($name)No toRaw converter for $unifiedJavaType")
         return converter.invoke(value)

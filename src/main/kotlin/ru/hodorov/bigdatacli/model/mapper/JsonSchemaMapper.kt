@@ -20,7 +20,8 @@ class JsonSchemaMapper : SchemaMapper<JsonNode, Nothing, Nothing, Nothing>(
     ),
     typeMapping = listOf(),
     subTypeMapping = listOf(),
-    typePairsToUnifiedJavaType = listOf()
+    typePairsToUnifiedJavaType = listOf(),
+    rawNull = om.nullNode()
 ) {
 
     override fun fromModel(model: UnifiedModel): List<JsonNode> {
@@ -28,8 +29,8 @@ class JsonSchemaMapper : SchemaMapper<JsonNode, Nothing, Nothing, Nothing>(
             val objectNode = om.createObjectNode()
 
             row.forEach { field ->
-                val value = field.getOrDefault()?.let { convertUnifiedToRawValue(it, field.fieldSchema.javaType) } as JsonNode?
-                objectNode.set<JsonNode>(field.fieldSchema.name, value ?: om.nullNode())
+                val value = convertUnifiedToRawValue(field.getOrDefault(), field.fieldSchema.javaType) as JsonNode
+                objectNode.set<JsonNode>(field.fieldSchema.name, value)
             }
 
             return@map objectNode
