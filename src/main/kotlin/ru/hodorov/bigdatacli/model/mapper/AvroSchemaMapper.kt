@@ -12,15 +12,38 @@ import ru.hodorov.bigdatacli.model.*
 import java.io.BufferedInputStream
 import java.util.*
 
-class AvroSchemaMapper : SchemaMapper<GenericData.Record, Schema, Schema.Type, LogicalType>() {
+class AvroSchemaMapper : SchemaMapper<GenericData.Record, Schema, Schema.Type, LogicalType>(
+    name = "avro",
+    mappers = listOf(
+        UnifiedFieldJavaType.STRING to Mapper({ it.toString() /*Utf8 -> String*/ }, null),
+        UnifiedFieldJavaType.DATE to Mapper({ Date(it as Long) }, null),
+    ),
+    typeMapping = listOf(
+        Schema.Type.INT to UnifiedFieldType.INT,
+        Schema.Type.LONG to UnifiedFieldType.LONG,
+        Schema.Type.STRING to UnifiedFieldType.STRING,
+    ),
+    subTypeMapping = listOf(
+        LogicalTypes.timestampMillis() to UnifiedFieldSubType.TIMESTAMP_MILLIS,
+    ),
+    typePairsToUnifiedJavaType = listOf(
+        (UnifiedFieldType.STRING to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.STRING,
+        (UnifiedFieldType.INT to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.INT,
+        (UnifiedFieldType.LONG to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.LONG,
+        (UnifiedFieldType.LONG to UnifiedFieldSubType.TIMESTAMP_MILLIS) to UnifiedFieldJavaType.DATE,
+    )
+) {
 
     override fun toUnifiedModelSchema(schema: Schema): UnifiedModelSchema {
         val fields = schema.fields.map {
+            val type = toUnifiedType(it.schema().type)
+            val subType = toUnifiedSubType(it.schema().logicalType)
             UnifiedFieldSchema(
                 it.name(),
                 it.pos(),
-                toUnifiedType(it.schema().type),
-                toUnifiedSubType(it.schema().logicalType),
+                type,
+                subType,
+                toUnifiedJavaType(type to subType),
                 it.defaultVal(),
                 true
             )
@@ -28,55 +51,21 @@ class AvroSchemaMapper : SchemaMapper<GenericData.Record, Schema, Schema.Type, L
         return UnifiedModelSchema(schema.fullName, fields)
     }
 
-    override fun toUnifiedType(type: Schema.Type): UnifiedFieldType {
-        return when (type) {
-            Schema.Type.INT -> UnifiedFieldType.INT
-            Schema.Type.LONG -> UnifiedFieldType.LONG
-            Schema.Type.STRING -> UnifiedFieldType.STRING
-            else -> throw IllegalArgumentException("Unknown type $type")
-
-        }
-    }
-
-    override fun toUnifiedSubType(subType: LogicalType?): UnifiedFieldSubType {
-        return when (subType) {
-            LogicalTypes.timestampMillis() -> UnifiedFieldSubType.TIMESTAMP_MILLIS
-            null -> UnifiedFieldSubType.NONE
-            else -> throw IllegalArgumentException("Unknown subType $subType")
-        }
-    }
-
-    override fun toModelSchema(schema: UnifiedModelSchema): Schema {
-        TODO("Not yet implemented")
-    }
-
-    override fun toType(type: UnifiedFieldType): LogicalType? {
-        TODO("Not yet implemented")
-    }
-
-    override fun toSubType(subType: UnifiedFieldSubType): LogicalType? {
-        TODO("Not yet implemented")
-    }
-
-    override fun toUnifiedFieldJavaType(value: Any, unifiedFieldJavaType: UnifiedFieldJavaType): Any {
-        return when(unifiedFieldJavaType) {
-            UnifiedFieldJavaType.STRING -> value.toString() //Utf8 -> String
-            UnifiedFieldJavaType.DATE -> Date(value as Long)
-            else -> value
-        }
-    }
-
     override fun toModel(path: Path, fs: FileSystem): UnifiedModel {
         BufferedInputStream(fs.open(path)).use { inStream ->
             val reader: DataFileStream<GenericData.Record> = DataFileStream(inStream, GenericDatumReader())
             val unifiedSchema = toUnifiedModelSchema(reader.schema)
             val values = reader.map { row ->
-                unifiedSchema.fields.map { field ->
-                    UnifiedField(field, row.get(field.position)?.let { toUnifiedFieldJavaType(it, field.getUnifiedJavaType()) })
+                unifiedSchema.fields.map { fieldSchema ->
+                    UnifiedField(fieldSchema, row.get(fieldSchema.position)?.let { convertRawValueToUnified(it, fieldSchema.javaType) })
                 }
             }
             return UnifiedModel(path, unifiedSchema, values)
         }
+    }
+
+    override fun toSchema(schema: UnifiedModelSchema): Schema {
+        TODO("Not yet implemented")
     }
 
     override fun fromModel(model: UnifiedModel): List<GenericData.Record> {

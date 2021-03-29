@@ -9,29 +9,38 @@ import org.apache.parquet.schema.PrimitiveType
 import org.apache.parquet.schema.Type
 import ru.hodorov.bigdatacli.model.*
 
-class ParquetSchemaMapper : SchemaMapper<Group, MessageType, PrimitiveType, LogicalTypeAnnotation>() {
+class ParquetSchemaMapper : SchemaMapper<Group, MessageType, PrimitiveType.PrimitiveTypeName, LogicalTypeAnnotation>(
+    name = "parquet",
+    mappers = listOf(), // TODO
+    typeMapping = listOf(
+        PrimitiveType.PrimitiveTypeName.INT32 to UnifiedFieldType.INT,
+        PrimitiveType.PrimitiveTypeName.INT64 to UnifiedFieldType.LONG,
+        PrimitiveType.PrimitiveTypeName.BINARY to UnifiedFieldType.BINARY,
+    ),
+    subTypeMapping = listOf(), // Overrided
+    typePairsToUnifiedJavaType = listOf(
+        (UnifiedFieldType.INT to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.INT,
+        (UnifiedFieldType.LONG to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.LONG,
+        (UnifiedFieldType.BINARY to UnifiedFieldSubType.STRING) to UnifiedFieldJavaType.STRING,
+    )
+) {
+
     override fun toUnifiedModelSchema(schema: MessageType): UnifiedModelSchema {
         val fields = schema.fields.map {
-            UnifiedFieldSchema(
+            val type = toUnifiedType(it.asPrimitiveType().primitiveTypeName)
+            val subType = toUnifiedSubType(it.logicalTypeAnnotation)
+
+            return@map UnifiedFieldSchema(
                 it.name,
                 schema.getFieldIndex(it.name),
-                toUnifiedType(it.asPrimitiveType()),
-                toUnifiedSubType(it.logicalTypeAnnotation),
+                type,
+                subType,
+                toUnifiedJavaType(type to subType),
                 null,
                 it.repetition != Type.Repetition.OPTIONAL
             )
         }
         return UnifiedModelSchema(schema.name, fields)
-    }
-
-    override fun toUnifiedType(type: PrimitiveType): UnifiedFieldType {
-        return when (type.primitiveTypeName) {
-            PrimitiveType.PrimitiveTypeName.INT32 -> UnifiedFieldType.INT
-            PrimitiveType.PrimitiveTypeName.INT64 -> UnifiedFieldType.LONG
-            PrimitiveType.PrimitiveTypeName.BINARY -> UnifiedFieldType.BINARY
-            else -> throw IllegalArgumentException("Unknown type $type")
-
-        }
     }
 
     override fun toUnifiedSubType(subType: LogicalTypeAnnotation?): UnifiedFieldSubType {
@@ -42,23 +51,15 @@ class ParquetSchemaMapper : SchemaMapper<Group, MessageType, PrimitiveType, Logi
         }
     }
 
-    override fun toModelSchema(schema: UnifiedModelSchema): MessageType {
-        TODO("Not yet implemented")
-    }
-
-    override fun toType(type: UnifiedFieldType): LogicalTypeAnnotation? {
-        TODO("Not yet implemented")
-    }
-
     override fun toSubType(subType: UnifiedFieldSubType): LogicalTypeAnnotation? {
         TODO("Not yet implemented")
     }
 
-    override fun toUnifiedFieldJavaType(value: Any, unifiedFieldJavaType: UnifiedFieldJavaType): Any {
+    override fun toModel(path: Path, fs: FileSystem): UnifiedModel {
         TODO("Not yet implemented")
     }
 
-    override fun toModel(path: Path, fs: FileSystem): UnifiedModel {
+    override fun toSchema(schema: UnifiedModelSchema): MessageType {
         TODO("Not yet implemented")
     }
 
