@@ -10,6 +10,7 @@ import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.Path
 import ru.hodorov.bigdatacli.model.*
 import java.io.BufferedInputStream
+import java.util.*
 
 class AvroSchemaMapper : SchemaMapper<GenericData.Record, Schema, Schema.Type, LogicalType>() {
 
@@ -57,13 +58,21 @@ class AvroSchemaMapper : SchemaMapper<GenericData.Record, Schema, Schema.Type, L
         TODO("Not yet implemented")
     }
 
+    override fun toUnifiedFieldJavaType(value: Any, unifiedFieldJavaType: UnifiedFieldJavaType): Any {
+        return when(unifiedFieldJavaType) {
+            UnifiedFieldJavaType.STRING -> value.toString() //Utf8 -> String
+            UnifiedFieldJavaType.DATE -> Date(value as Long)
+            else -> value
+        }
+    }
+
     override fun toModel(path: Path, fs: FileSystem): UnifiedModel {
         BufferedInputStream(fs.open(path)).use { inStream ->
             val reader: DataFileStream<GenericData.Record> = DataFileStream(inStream, GenericDatumReader())
             val unifiedSchema = toUnifiedModelSchema(reader.schema)
             val values = reader.map { row ->
                 unifiedSchema.fields.map { field ->
-                    UnifiedField(field, row.get(field.position))
+                    UnifiedField(field, row.get(field.position)?.let { toUnifiedFieldJavaType(it, field.getUnifiedJavaType()) })
                 }
             }
             return UnifiedModel(path, unifiedSchema, values)

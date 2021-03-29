@@ -54,6 +54,10 @@ class ParquetSchemaMapper : SchemaMapper<Group, MessageType, PrimitiveType, Logi
         TODO("Not yet implemented")
     }
 
+    override fun toUnifiedFieldJavaType(value: Any, unifiedFieldJavaType: UnifiedFieldJavaType): Any {
+        TODO("Not yet implemented")
+    }
+
     override fun toModel(path: Path, fs: FileSystem): UnifiedModel {
         TODO("Not yet implemented")
     }

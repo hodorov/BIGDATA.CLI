@@ -21,6 +21,7 @@ val hadoopVersion = "3.3.0"
 val avroVersion = "1.10.2"
 val parquetHadoopVersion = "1.12.0"
 val snappyVersion = "1.1.8.4"
+val jacksonVersion = "2.11.4" // Inherited from SpringBoot
 
 // From Hadoop libraries
 configurations {
@@ -51,6 +52,10 @@ dependencies {
     implementation("org.apache.parquet:parquet-hadoop:${parquetHadoopVersion}")
     implementation("org.xerial.snappy:snappy-java:$snappyVersion")
 //    implementation("org.apache.hadoop:hadoop-hdfs:$hadoopVersion")
+
+    // Jackson
+    implementation ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+    implementation ("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
 }
 
 tasks.withType<KotlinCompile> {

@@ -1,5 +1,6 @@
 package ru.hodorov.bigdatacli.shell.command
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericDatumReader
@@ -21,6 +22,8 @@ class Avro(
     val fsContext: FsContext,
     @Lazy val terminal: TerminalService
 ) {
+    private val om = jacksonObjectMapper()
+
     @ShellMethod("Read schema")
     fun avroSchema(
         @ShellOption(defaultValue = ".") path: String,
@@ -43,5 +46,22 @@ class Avro(
             terminal.println("Unified schema")
             terminal.println(unifiedSchema)
         }
+    }
+
+    @ShellMethod("Read values")
+    fun avroRead(
+        @ShellOption(defaultValue = ".") path: String,
+    ) {
+        val newPath = fsContext.currentUri.append(path).toHadoopPath()
+        fsService.getFileStatusesRecursiveStream(newPath)
+            .filter { it.path.toString().endsWith(".avro") }
+            .forEach { file ->
+                terminal.println("Read file ${file.path}")
+                val model = SchemaMapper.AVRO.toModel(file.path, fsContext.fs)
+                SchemaMapper.JSON.fromModel(model).forEachIndexed { i, row ->
+                    terminal.println("File: ${file.path}, record ${i + 1}")
+                    terminal.println(om.writeValueAsString(row))
+                }
+            }
     }
 }
