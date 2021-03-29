@@ -1,13 +1,9 @@
 package ru.hodorov.bigdatacli.model
 
+import org.apache.hadoop.fs.Path
+
 data class UnifiedModel(
-    val name: String,
-    val fields: List<UnifiedField>
-) {
-    override fun toString(): String {
-        return """
-===$name===
-${fields.joinToString(separator = System.lineSeparator())}
-        """
-    }
-}
+    val path: Path?,
+    val schema: UnifiedModelSchema,
+    val values: List<List<UnifiedField>>
+)

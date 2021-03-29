@@ -8,7 +8,7 @@ import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
 import ru.hodorov.bigdatacli.extends.append
 import ru.hodorov.bigdatacli.extends.toHadoopPath
-import ru.hodorov.bigdatacli.model.ParquetSchemaMapper
+import ru.hodorov.bigdatacli.model.mapper.SchemaMapper
 import ru.hodorov.bigdatacli.service.FsService
 import ru.hodorov.bigdatacli.service.TerminalService
 import ru.hodorov.bigdatacli.utils.FsContext
@@ -37,7 +37,7 @@ class Parquet(
             terminal.println("Original schema")
             terminal.println(schema)
 
-            val unifiedSchema = ParquetSchemaMapper.toUnifiedModel(schema)
+            val unifiedSchema = SchemaMapper.PARQUET.toUnifiedModelSchema(schema)
             terminal.println("Unified schema")
             terminal.println(unifiedSchema)
         }

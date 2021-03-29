@@ -1,6 +1,6 @@
 package ru.hodorov.bigdatacli.model
 
-enum class UnifiedJavaType {
+enum class UnifiedFieldJavaType {
     STRING,
     INT,
     LONG,
