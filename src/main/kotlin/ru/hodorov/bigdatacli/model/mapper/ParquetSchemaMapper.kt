@@ -9,7 +9,7 @@ import org.apache.parquet.schema.PrimitiveType
 import org.apache.parquet.schema.Type
 import ru.hodorov.bigdatacli.model.*
 
-class ParquetSchemaMapper : SchemaMapper<Group, MessageType, PrimitiveType.PrimitiveTypeName, LogicalTypeAnnotation>(
+class ParquetSchemaMapper : SchemaMapper<Group, MessageType, PrimitiveType.PrimitiveTypeName, Class<out LogicalTypeAnnotation>>(
     name = "parquet",
     mappers = listOf(), // TODO
     typeMapping = listOf(
@@ -17,7 +17,9 @@ class ParquetSchemaMapper : SchemaMapper<Group, MessageType, PrimitiveType.Primi
         PrimitiveType.PrimitiveTypeName.INT64 to UnifiedFieldType.LONG,
         PrimitiveType.PrimitiveTypeName.BINARY to UnifiedFieldType.BINARY,
     ),
-    subTypeMapping = listOf(), // Overrided
+    subTypeMapping = listOf(
+        LogicalTypeAnnotation.StringLogicalTypeAnnotation::class.java to UnifiedFieldSubType.STRING,
+    ),
     typePairsToUnifiedJavaType = listOf(
         (UnifiedFieldType.INT to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.INT,
         (UnifiedFieldType.LONG to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.LONG,
@@ -28,7 +30,7 @@ class ParquetSchemaMapper : SchemaMapper<Group, MessageType, PrimitiveType.Primi
     override fun toUnifiedModelSchema(schema: MessageType): UnifiedModelSchema {
         val fields = schema.fields.map {
             val type = toUnifiedType(it.asPrimitiveType().primitiveTypeName)
-            val subType = toUnifiedSubType(it.logicalTypeAnnotation)
+            val subType = toUnifiedSubType(it.logicalTypeAnnotation?.let { subType -> subType::class.java })
 
             return@map UnifiedFieldSchema(
                 it.name,
@@ -41,18 +43,6 @@ class ParquetSchemaMapper : SchemaMapper<Group, MessageType, PrimitiveType.Primi
             )
         }
         return UnifiedModelSchema(schema.name, fields)
-    }
-
-    override fun toUnifiedSubType(subType: LogicalTypeAnnotation?): UnifiedFieldSubType {
-        return when (subType) {
-            is LogicalTypeAnnotation.StringLogicalTypeAnnotation -> UnifiedFieldSubType.STRING
-            null -> UnifiedFieldSubType.NONE
-            else -> throw IllegalArgumentException("Unknown subType $subType")
-        }
-    }
-
-    override fun toSubType(subType: UnifiedFieldSubType): LogicalTypeAnnotation? {
-        TODO("Not yet implemented")
     }
 
     override fun toModel(path: Path, fs: FileSystem): UnifiedModel {
