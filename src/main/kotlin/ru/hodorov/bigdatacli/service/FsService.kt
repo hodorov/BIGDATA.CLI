@@ -14,7 +14,7 @@ import java.util.stream.Stream
 private val log = KotlinLogging.logger { }
 
 @Service
-class HdfsService(
+class FsService(
     private val fsContext: FsContext,
     private val fjp: ForkJoinPool
 ) {

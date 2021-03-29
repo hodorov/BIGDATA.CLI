@@ -4,14 +4,18 @@ import org.apache.hadoop.fs.Path
 import org.springframework.context.annotation.Lazy
 import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
+import org.springframework.shell.standard.ShellOption
 import ru.hodorov.bigdatacli.extends.append
 import ru.hodorov.bigdatacli.extends.toHadoopPath
+import ru.hodorov.bigdatacli.service.FsService
 import ru.hodorov.bigdatacli.service.TerminalService
+import ru.hodorov.bigdatacli.utils.FormatUtils
 import ru.hodorov.bigdatacli.utils.FsContext
 
 @ShellComponent
 class Fs(
     val fsContext: FsContext,
+    val fsService: FsService,
     @Lazy val terminal: TerminalService
 ) {
     @ShellMethod("Change directory")
@@ -28,6 +32,20 @@ class Fs(
         }
 
         fsContext.currentUri = fsContext.fs.getFileStatus(newPath).path.toUri()
+    }
+
+    @ShellMethod("Calc size of file/folder")
+    fun size(
+        @ShellOption(defaultValue = ".") path: String
+    ) {
+        val newPath = fsContext.currentUri.append(path).toHadoopPath()
+        if (!fsContext.fs.exists(newPath)) {
+            terminal.println("Path $newPath not found")
+            return
+        }
+
+        val size = fsService.getFileStatusesRecursive(newPath).map { it.len }.sum()
+        terminal.println("Total size ${FormatUtils.formatBytes(size)}")
     }
 
     @ShellMethod("Show current folder content", key = ["ls", "dir"])
