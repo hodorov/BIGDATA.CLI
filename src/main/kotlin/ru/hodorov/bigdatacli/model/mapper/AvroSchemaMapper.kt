@@ -17,11 +17,14 @@ class AvroSchemaMapper : SchemaMapper<GenericData.Record, Schema, Schema.Type, L
     mappers = listOf(
         UnifiedFieldJavaType.STRING to Mapper({ it.toString() /*Utf8 -> String*/ }, null),
         UnifiedFieldJavaType.DATE to Mapper({ Date(it as Long) }, null),
+        UnifiedFieldJavaType.LONG to Mapper({ it }, null),
+        UnifiedFieldJavaType.MAP to Mapper({ it.hashCode() }, null),
     ),
     typeMapping = listOf(
         Schema.Type.INT to UnifiedFieldType.INT,
         Schema.Type.LONG to UnifiedFieldType.LONG,
         Schema.Type.STRING to UnifiedFieldType.STRING,
+        Schema.Type.MAP to UnifiedFieldType.MAP,
     ),
     subTypeMapping = listOf(
         LogicalTypes.timestampMillis() to UnifiedFieldSubType.TIMESTAMP_MILLIS,
@@ -31,6 +34,7 @@ class AvroSchemaMapper : SchemaMapper<GenericData.Record, Schema, Schema.Type, L
         (UnifiedFieldType.INT to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.INT,
         (UnifiedFieldType.LONG to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.LONG,
         (UnifiedFieldType.LONG to UnifiedFieldSubType.TIMESTAMP_MILLIS) to UnifiedFieldJavaType.DATE,
+        (UnifiedFieldType.MAP to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.MAP,
     )
 ) {
 

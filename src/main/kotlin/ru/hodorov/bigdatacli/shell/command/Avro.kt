@@ -1,5 +1,6 @@
 package ru.hodorov.bigdatacli.shell.command
 
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.GenericData
@@ -23,6 +24,7 @@ class Avro(
     @Lazy val terminal: TerminalService
 ) {
     private val om = jacksonObjectMapper()
+    private val prettifyOm = jacksonObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
 
     @ShellMethod("Read schema")
     fun avroSchema(
@@ -51,6 +53,7 @@ class Avro(
     @ShellMethod("Read values")
     fun avroRead(
         @ShellOption(defaultValue = ".") path: String,
+        @ShellOption(defaultValue = "false") prettify: Boolean,
     ) {
         val newPath = fsContext.currentUri.append(path).toHadoopPath()
         fsService.getFileStatusesRecursiveStream(newPath)
@@ -60,7 +63,7 @@ class Avro(
                 val model = SchemaMapper.AVRO.toModel(file.path, fsContext.fs)
                 SchemaMapper.JSON.fromModel(model).forEachIndexed { i, row ->
                     terminal.println("File: ${file.path}, record ${i + 1}")
-                    terminal.println(om.writeValueAsString(row))
+                    terminal.println((if (prettify) prettifyOm else om).writeValueAsString(row))
                 }
             }
     }

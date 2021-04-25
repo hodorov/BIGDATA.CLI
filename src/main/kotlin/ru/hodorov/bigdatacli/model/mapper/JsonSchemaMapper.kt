@@ -17,6 +17,7 @@ class JsonSchemaMapper : SchemaMapper<JsonNode, Nothing, Nothing, Nothing>(
         UnifiedFieldJavaType.LONG to Mapper(null, { LongNode(it as Long) }),
         UnifiedFieldJavaType.STRING to Mapper(null, { TextNode(it as String) }),
         UnifiedFieldJavaType.DATE to Mapper(null, { TextNode(om.dateFormat.format(it as Date)) }),
+        UnifiedFieldJavaType.MAP to Mapper(null, { om.valueToTree(it) }),
     ),
     typeMapping = listOf(),
     subTypeMapping = listOf(),

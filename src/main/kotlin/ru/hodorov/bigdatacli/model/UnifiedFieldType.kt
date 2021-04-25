@@ -4,5 +4,6 @@ enum class UnifiedFieldType {
     STRING,
     INT,
     LONG,
-    BINARY
+    BINARY,
+    MAP
 }

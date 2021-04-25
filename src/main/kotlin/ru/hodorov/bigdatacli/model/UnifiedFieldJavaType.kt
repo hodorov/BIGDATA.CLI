@@ -4,5 +4,6 @@ enum class UnifiedFieldJavaType {
     STRING,
     INT,
     LONG,
-    DATE
+    DATE,
+    MAP
 }
