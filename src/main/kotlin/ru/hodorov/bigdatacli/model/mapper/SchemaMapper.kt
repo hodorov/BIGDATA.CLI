@@ -1,12 +1,13 @@
 package ru.hodorov.bigdatacli.model.mapper
 
+import com.fasterxml.jackson.databind.JsonNode
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.Path
 import ru.hodorov.bigdatacli.model.*
 
 data class Mapper(
-    val fromRaw: ((raw: Any) -> Any)?,
-    val toRaw: ((raw: Any) -> Any)?
+    val fromRaw: ((raw: Any) -> JsonNode)?,
+    val toRaw: ((value: JsonNode) -> Any)?
 )
 
 // R - Record
@@ -51,7 +52,7 @@ abstract class SchemaMapper<R, S, T, ST>(
         return unifiedJavaTypeByTypePair[typePair] ?: error("($name)Can't convert $typePair to UnifiedJavaType")
     }
 
-    fun convertRawValueToUnified(value: Any, unifiedJavaType: UnifiedFieldJavaType): Any {
+    fun convertRawValueToUnified(value: Any, unifiedJavaType: UnifiedFieldJavaType): JsonNode {
         val mapper = mappersByUnifiedJavaType[unifiedJavaType] ?: error("($name)No converter for $unifiedJavaType")
         val converter = mapper.fromRaw ?: error("($name)No fromRaw converter for $unifiedJavaType")
         return converter.invoke(value)
@@ -77,7 +78,7 @@ abstract class SchemaMapper<R, S, T, ST>(
         return typePairByUnifiedJavaType[unifiedJavaType] ?: error("($name)Can't convert $unifiedJavaType to type pair")
     }
 
-    fun convertUnifiedToRawValue(value: Any?, unifiedJavaType: UnifiedFieldJavaType): Any? {
+    fun convertUnifiedToRawValue(value: JsonNode?, unifiedJavaType: UnifiedFieldJavaType): Any? {
         if (value == null) {
             return rawNull
         }

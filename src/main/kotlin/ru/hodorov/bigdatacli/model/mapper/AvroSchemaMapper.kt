@@ -1,5 +1,9 @@
 package ru.hodorov.bigdatacli.model.mapper
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.LongNode
+import com.fasterxml.jackson.databind.node.TextNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.apache.avro.LogicalType
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
@@ -10,15 +14,16 @@ import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.Path
 import ru.hodorov.bigdatacli.model.*
 import java.io.BufferedInputStream
-import java.util.*
+
+private val om = jacksonObjectMapper()
 
 class AvroSchemaMapper : SchemaMapper<GenericData.Record, Schema, Schema.Type, LogicalType>(
     name = "avro",
     mappers = listOf(
-        UnifiedFieldJavaType.STRING to Mapper({ it.toString() /*Utf8 -> String*/ }, null),
-        UnifiedFieldJavaType.DATE to Mapper({ Date(it as Long) }, null),
-        UnifiedFieldJavaType.LONG to Mapper({ it }, null),
-        UnifiedFieldJavaType.MAP to Mapper({ it.hashCode() }, null),
+        UnifiedFieldJavaType.STRING to Mapper({ TextNode(it.toString()) /*Utf8 -> String*/ }, null),
+        UnifiedFieldJavaType.DATE to Mapper({ LongNode(it as Long) }, null),
+        UnifiedFieldJavaType.LONG to Mapper({ LongNode(it as Long) }, null),
+        UnifiedFieldJavaType.MAP to Mapper({ om.valueToTree(it) }, null),
     ),
     typeMapping = listOf(
         Schema.Type.INT to UnifiedFieldType.INT,
@@ -48,7 +53,7 @@ class AvroSchemaMapper : SchemaMapper<GenericData.Record, Schema, Schema.Type, L
                 type,
                 subType,
                 toUnifiedJavaType(type to subType),
-                it.defaultVal(),
+                defaultToJsonNode(it.defaultVal()),
                 true
             )
         }
@@ -60,8 +65,9 @@ class AvroSchemaMapper : SchemaMapper<GenericData.Record, Schema, Schema.Type, L
             val reader: DataFileStream<GenericData.Record> = DataFileStream(inStream, GenericDatumReader())
             val unifiedSchema = toUnifiedModelSchema(reader.schema)
             val values = reader.map { row ->
-                unifiedSchema.fields.map { fieldSchema ->
-                    UnifiedField(fieldSchema, row.get(fieldSchema.position)?.let { convertRawValueToUnified(it, fieldSchema.javaType) })
+                unifiedSchema.fields.map field@{ fieldSchema ->
+                    val value = row.get(fieldSchema.position) ?: fieldSchema.default
+                    return@field UnifiedField(fieldSchema, value?.let { convertRawValueToUnified(it, fieldSchema.javaType) }, value)
                 }
             }
             return UnifiedModel(path, unifiedSchema, values)
@@ -74,5 +80,13 @@ class AvroSchemaMapper : SchemaMapper<GenericData.Record, Schema, Schema.Type, L
 
     override fun fromModel(model: UnifiedModel): List<GenericData.Record> {
         TODO("Not yet implemented")
+    }
+
+    private fun defaultToJsonNode(default: Any?): JsonNode? {
+        if (default != null) {
+            TODO("Not yet implemented")
+        } else {
+            return null
+        }
     }
 }

@@ -13,11 +13,11 @@ private val om = jacksonObjectMapper()
 class JsonSchemaMapper : SchemaMapper<JsonNode, Nothing, Nothing, Nothing>(
     name = "json",
     mappers = listOf(
-        UnifiedFieldJavaType.INT to Mapper(null, { IntNode(it as Int) }),
-        UnifiedFieldJavaType.LONG to Mapper(null, { LongNode(it as Long) }),
-        UnifiedFieldJavaType.STRING to Mapper(null, { TextNode(it as String) }),
-        UnifiedFieldJavaType.DATE to Mapper(null, { TextNode(om.dateFormat.format(it as Date)) }),
-        UnifiedFieldJavaType.MAP to Mapper(null, { om.valueToTree(it) }),
+        UnifiedFieldJavaType.INT to Mapper(null, { it }),
+        UnifiedFieldJavaType.LONG to Mapper(null, { it }),
+        UnifiedFieldJavaType.STRING to Mapper(null, { it }),
+        UnifiedFieldJavaType.DATE to Mapper(null, { TextNode(om.dateFormat.format(Date((it as LongNode).asLong()))) }),
+        UnifiedFieldJavaType.MAP to Mapper(null, { it }),
     ),
     typeMapping = listOf(),
     subTypeMapping = listOf(),
@@ -30,7 +30,7 @@ class JsonSchemaMapper : SchemaMapper<JsonNode, Nothing, Nothing, Nothing>(
             val objectNode = om.createObjectNode()
 
             row.forEach { field ->
-                val value = convertUnifiedToRawValue(field.getOrDefault(), field.fieldSchema.javaType) as JsonNode
+                val value = convertUnifiedToRawValue(field.jsonNodeValue, field.fieldSchema.javaType) as JsonNode
                 objectNode.set<JsonNode>(field.fieldSchema.name, value)
             }
 

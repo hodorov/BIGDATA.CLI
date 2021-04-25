@@ -1,5 +1,7 @@
 package ru.hodorov.bigdatacli.model
 
+import com.fasterxml.jackson.databind.JsonNode
+
 data class UnifiedFieldSchema(
     val name: String,
     val position: Int,
