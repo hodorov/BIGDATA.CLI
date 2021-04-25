@@ -1,16 +1,15 @@
 package ru.hodorov.bigdatacli.shell.command
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.apache.avro.LogicalType
+import org.apache.avro.Schema
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.GenericData
 import org.apache.avro.generic.GenericDatumReader
+import org.apache.hadoop.fs.Path
 import org.springframework.context.annotation.Lazy
 import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
-import ru.hodorov.bigdatacli.extends.append
-import ru.hodorov.bigdatacli.extends.toHadoopPath
 import ru.hodorov.bigdatacli.model.mapper.SchemaMapper
 import ru.hodorov.bigdatacli.service.FsService
 import ru.hodorov.bigdatacli.service.TerminalService
@@ -19,35 +18,29 @@ import java.io.BufferedInputStream
 
 @ShellComponent
 class Avro(
-    val fsService: FsService,
+    fsService: FsService,
     val fsContext: FsContext,
-    @Lazy val terminal: TerminalService
+    @Lazy terminal: TerminalService
+) : AbstractFormatReader<GenericData.Record, Schema, Schema.Type, LogicalType>(
+    fsService,
+    fsContext,
+    terminal,
+    SchemaMapper.AVRO,
+    ".avro",
 ) {
-    private val om = jacksonObjectMapper()
-    private val prettifyOm = jacksonObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
+
+    override fun readSchemaFromPath(path: Path): Schema {
+        return BufferedInputStream(fsContext.fs.open(path)).use { inStream ->
+            val reader: DataFileStream<GenericData.Record> = DataFileStream(inStream, GenericDatumReader())
+            return@use reader.schema
+        }
+    }
 
     @ShellMethod("Read schema")
     fun avroSchema(
         @ShellOption(defaultValue = ".") path: String,
     ) {
-        val newPath = fsContext.currentUri.append(path).toHadoopPath()
-        val file = fsService.getFileStatusesRecursiveStream(newPath)
-            .filter { it.path.toString().endsWith(".avro") }
-            .findFirst()
-            .get()
-
-        terminal.println("Use first founded file: ${file.path}")
-
-        BufferedInputStream(fsContext.fs.open(file.path)).use { inStream ->
-            val reader: DataFileStream<GenericData.Record> = DataFileStream(inStream, GenericDatumReader())
-            val schema = reader.schema
-            terminal.println("Original schema")
-            terminal.println(schema.toString(true))
-
-            val unifiedSchema = SchemaMapper.AVRO.toUnifiedModelSchema(schema)
-            terminal.println("Unified schema")
-            terminal.println(unifiedSchema)
-        }
+        readSchema(path)
     }
 
     @ShellMethod("Read values")
@@ -55,16 +48,6 @@ class Avro(
         @ShellOption(defaultValue = ".") path: String,
         @ShellOption(defaultValue = "false") prettify: Boolean,
     ) {
-        val newPath = fsContext.currentUri.append(path).toHadoopPath()
-        fsService.getFileStatusesRecursiveStream(newPath)
-            .filter { it.path.toString().endsWith(".avro") }
-            .forEach { file ->
-                terminal.println("Read file ${file.path}")
-                val model = SchemaMapper.AVRO.toModel(file.path, fsContext.fs)
-                SchemaMapper.JSON.fromModel(model).forEachIndexed { i, row ->
-                    terminal.println("File: ${file.path}, record ${i + 1}")
-                    terminal.println((if (prettify) prettifyOm else om).writeValueAsString(row))
-                }
-            }
+        readRecords(path, prettify)
     }
 }
