@@ -47,7 +47,8 @@ class Avro(
     fun avroRead(
         @ShellOption(defaultValue = ".") path: String,
         @ShellOption(defaultValue = "false") prettify: Boolean,
+        @ShellOption(defaultValue = "-1") limit: Long,
     ) {
-        readRecords(path, prettify)
+        readRecords(path, prettify, limit)
     }
 }

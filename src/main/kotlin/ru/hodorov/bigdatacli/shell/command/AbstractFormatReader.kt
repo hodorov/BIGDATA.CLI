@@ -9,6 +9,9 @@ import ru.hodorov.bigdatacli.model.mapper.SchemaMapper
 import ru.hodorov.bigdatacli.service.FsService
 import ru.hodorov.bigdatacli.service.TerminalService
 import ru.hodorov.bigdatacli.utils.FsContext
+import java.lang.Exception
+
+class LimitReachedException : Exception()
 
 // R - Record
 // S - Schema
@@ -47,17 +50,31 @@ abstract class AbstractFormatReader<R, S, T, ST>(
         terminal.println("")
     }
 
-    fun readRecords(path: String, prettify: Boolean) {
+    fun readRecords(
+        path: String,
+        prettify: Boolean,
+        limit: Long
+    ) {
         val newPath = fsContext.currentUri.append(path).toHadoopPath()
-        fsService.getFileStatusesRecursiveStream(newPath)
-            .filter { it.path.toString().endsWith(fileSuffix) }
-            .forEach { file ->
-                terminal.println("Read file ${file.path}")
-                val model = mapper.toModel(file.path, fsContext.fs)
-                SchemaMapper.JSON.fromModel(model).forEachIndexed { i, row ->
-                    terminal.println("File: ${file.path}, record ${i + 1}")
-                    terminal.println((if (prettify) prettifyOm else om).writeValueAsString(row))
+
+        try {
+            var totalRows = 0L
+            fsService.getFileStatusesRecursiveStream(newPath)
+                .filter { it.path.toString().endsWith(fileSuffix) }
+                .forEach { file ->
+                    terminal.println("Read file ${file.path}")
+                    val model = mapper.toModel(file.path, fsContext.fs)
+                    SchemaMapper.JSON.fromModel(model).forEachIndexed { i, row ->
+                        terminal.println("File: ${file.path}, record ${i + 1}")
+                        terminal.println((if (prettify) prettifyOm else om).writeValueAsString(row))
+                        totalRows++
+                        if (limit in 1..totalRows) {
+                            throw LimitReachedException()
+                        }
+                    }
                 }
-            }
+        } catch (e: LimitReachedException) {
+            terminal.println("Limit reached")
+        }
     }
 }
