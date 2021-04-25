@@ -48,7 +48,8 @@ class Avro(
         @ShellOption(defaultValue = ".") path: String,
         @ShellOption(defaultValue = "false") prettify: Boolean,
         @ShellOption(defaultValue = "-1") limit: Long,
+        @ShellOption(defaultValue = "") parseAsJson: String,
     ) {
-        readRecords(path, prettify, limit)
+        readRecords(path, prettify, limit, parseAsJson.takeIf { it.isNotBlank() })
     }
 }

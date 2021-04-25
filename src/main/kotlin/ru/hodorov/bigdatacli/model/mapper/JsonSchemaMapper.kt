@@ -10,7 +10,7 @@ import java.util.*
 
 private val om = jacksonObjectMapper()
 
-class JsonSchemaMapper : SchemaMapper<JsonNode, Nothing, Nothing, Nothing>(
+class JsonSchemaMapper : SchemaMapper<ObjectNode, Nothing, Nothing, Nothing>(
     name = "json",
     mappers = listOf(
         UnifiedFieldJavaType.INT to Mapper(null, { it }),
@@ -25,7 +25,7 @@ class JsonSchemaMapper : SchemaMapper<JsonNode, Nothing, Nothing, Nothing>(
     rawNull = om.nullNode()
 ) {
 
-    override fun fromModel(model: UnifiedModel): List<JsonNode> {
+    override fun fromModel(model: UnifiedModel): List<ObjectNode> {
         return model.values.map { row ->
             val objectNode = om.createObjectNode()
 
