@@ -1,6 +1,7 @@
 package ru.hodorov.bigdatacli.model.mapper
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.BooleanNode
 import com.fasterxml.jackson.databind.node.LongNode
 import com.fasterxml.jackson.databind.node.TextNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -24,12 +25,16 @@ class AvroSchemaMapper : SchemaMapper<GenericData.Record, Schema, Schema.Type, L
         UnifiedFieldJavaType.DATE to Mapper({ LongNode(it as Long) }, null),
         UnifiedFieldJavaType.LONG to Mapper({ LongNode(it as Long) }, null),
         UnifiedFieldJavaType.MAP to Mapper({ om.valueToTree(it) }, null),
+        UnifiedFieldJavaType.ARRAY to Mapper({ om.valueToTree(it) }, null),
+        UnifiedFieldJavaType.BOOLEAN to Mapper({ BooleanNode.valueOf(it as Boolean) }, null),
     ),
     typeMapping = listOf(
         Schema.Type.INT to UnifiedFieldType.INT,
         Schema.Type.LONG to UnifiedFieldType.LONG,
         Schema.Type.STRING to UnifiedFieldType.STRING,
         Schema.Type.MAP to UnifiedFieldType.MAP,
+        Schema.Type.ARRAY to UnifiedFieldType.ARRAY,
+        Schema.Type.BOOLEAN to UnifiedFieldType.BOOLEAN,
     ),
     subTypeMapping = listOf(
         LogicalTypes.timestampMillis() to UnifiedFieldSubType.TIMESTAMP_MILLIS,
@@ -40,6 +45,8 @@ class AvroSchemaMapper : SchemaMapper<GenericData.Record, Schema, Schema.Type, L
         (UnifiedFieldType.LONG to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.LONG,
         (UnifiedFieldType.LONG to UnifiedFieldSubType.TIMESTAMP_MILLIS) to UnifiedFieldJavaType.DATE,
         (UnifiedFieldType.MAP to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.MAP,
+        (UnifiedFieldType.ARRAY to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.ARRAY,
+        (UnifiedFieldType.BOOLEAN to UnifiedFieldSubType.NONE) to UnifiedFieldJavaType.BOOLEAN,
     )
 ) {
 

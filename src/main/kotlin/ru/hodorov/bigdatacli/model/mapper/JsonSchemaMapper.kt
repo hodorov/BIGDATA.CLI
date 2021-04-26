@@ -18,6 +18,8 @@ class JsonSchemaMapper : SchemaMapper<ObjectNode, Nothing, Nothing, Nothing>(
         UnifiedFieldJavaType.STRING to Mapper(null, { it }),
         UnifiedFieldJavaType.DATE to Mapper(null, { TextNode(om.dateFormat.format(Date((it as LongNode).asLong()))) }),
         UnifiedFieldJavaType.MAP to Mapper(null, { it }),
+        UnifiedFieldJavaType.ARRAY to Mapper(null, { it }),
+        UnifiedFieldJavaType.BOOLEAN to Mapper(null, { it }),
     ),
     typeMapping = listOf(),
     subTypeMapping = listOf(),

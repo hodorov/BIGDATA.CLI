@@ -5,5 +5,7 @@ enum class UnifiedFieldType {
     INT,
     LONG,
     BINARY,
-    MAP
+    MAP,
+    ARRAY,
+    BOOLEAN,
 }

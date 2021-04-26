@@ -5,5 +5,7 @@ enum class UnifiedFieldJavaType {
     INT,
     LONG,
     DATE,
-    MAP
+    MAP,
+    ARRAY,
+    BOOLEAN,
 }
