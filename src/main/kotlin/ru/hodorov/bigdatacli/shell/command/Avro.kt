@@ -10,10 +10,12 @@ import org.springframework.context.annotation.Lazy
 import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
+import ru.hodorov.bigdatacli.extension.append
+import ru.hodorov.bigdatacli.extension.toHadoopPath
 import ru.hodorov.bigdatacli.model.mapper.SchemaMapper
 import ru.hodorov.bigdatacli.service.FsService
 import ru.hodorov.bigdatacli.service.TerminalService
-import ru.hodorov.bigdatacli.utils.FsContext
+import ru.hodorov.bigdatacli.fs.FsContext
 import java.io.BufferedInputStream
 
 @ShellComponent
@@ -51,5 +53,27 @@ class Avro(
         @ShellOption(defaultValue = "") parseAsJson: String,
     ) {
         readRecords(path, prettify, limit, parseAsJson.takeIf { it.isNotBlank() })
+    }
+
+    @ShellMethod("Count values")
+    fun avroCount(
+        @ShellOption(defaultValue = ".") path: String
+    ) {
+        val newPath = fsContext.currentUri.append(path).toHadoopPath()
+
+        var totalCount = 0
+
+        fsService.getFileStatusesRecursiveStream(newPath)
+            .filter { it.path.toString().endsWith(".avro") }
+            .parallel()
+            .forEach { file ->
+                BufferedInputStream(fsContext.fs.open(file.path)).use { inStream ->
+                    val reader: DataFileStream<GenericData.Record> = DataFileStream(inStream, GenericDatumReader())
+                    terminal.println("File ${file.path}")
+                    val count = reader.count()
+                    totalCount += count
+                    terminal.println("Count ${count}, total count ${totalCount}")
+                }
+            }
     }
 }

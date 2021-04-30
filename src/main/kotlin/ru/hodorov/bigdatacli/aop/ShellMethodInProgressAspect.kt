@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component
 class ShellMethodInProgressAspect {
 
     var shellMethodInProgress = false
+
     @Pointcut("@annotation(org.springframework.shell.standard.ShellMethod)")
     fun shellMethodPointcut() {}
 

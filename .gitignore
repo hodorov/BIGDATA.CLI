@@ -37,4 +37,4 @@ out/
 
 *.log
 tmp/*
-application-local.properties
+application-local.yaml

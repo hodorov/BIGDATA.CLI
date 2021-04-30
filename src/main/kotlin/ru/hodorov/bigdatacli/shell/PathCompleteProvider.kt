@@ -1,15 +1,14 @@
 package ru.hodorov.bigdatacli.shell
 
-import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.Path
 import org.springframework.core.MethodParameter
 import org.springframework.shell.CompletionContext
 import org.springframework.shell.CompletionProposal
 import org.springframework.shell.standard.ValueProvider
 import org.springframework.stereotype.Component
-import ru.hodorov.bigdatacli.extends.append
-import ru.hodorov.bigdatacli.extends.toHadoopPath
-import ru.hodorov.bigdatacli.utils.FsContext
+import ru.hodorov.bigdatacli.extension.append
+import ru.hodorov.bigdatacli.extension.toHadoopPath
+import ru.hodorov.bigdatacli.fs.FsContext
 
 @Component
 class PathCompleteProvider(

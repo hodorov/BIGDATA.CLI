@@ -4,7 +4,7 @@ import org.jline.utils.AttributedString
 import org.jline.utils.AttributedStyle
 import org.springframework.shell.jline.PromptProvider
 import org.springframework.shell.standard.ShellComponent
-import ru.hodorov.bigdatacli.utils.FsContext
+import ru.hodorov.bigdatacli.fs.FsContext
 
 @ShellComponent
 class FsPromptProvider(

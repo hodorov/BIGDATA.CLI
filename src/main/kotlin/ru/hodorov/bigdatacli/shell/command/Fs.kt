@@ -5,12 +5,12 @@ import org.springframework.context.annotation.Lazy
 import org.springframework.shell.standard.ShellComponent
 import org.springframework.shell.standard.ShellMethod
 import org.springframework.shell.standard.ShellOption
-import ru.hodorov.bigdatacli.extends.append
-import ru.hodorov.bigdatacli.extends.toHadoopPath
+import ru.hodorov.bigdatacli.extension.append
+import ru.hodorov.bigdatacli.extension.toHadoopPath
 import ru.hodorov.bigdatacli.service.FsService
 import ru.hodorov.bigdatacli.service.TerminalService
 import ru.hodorov.bigdatacli.utils.FormatUtils
-import ru.hodorov.bigdatacli.utils.FsContext
+import ru.hodorov.bigdatacli.fs.FsContext
 
 @ShellComponent
 class Fs(
@@ -65,8 +65,7 @@ class Fs(
             terminal.println(sb.toString())
         }
     }
+
     @ShellMethod("Switch FS")
-    fun switch(fs: String) {
-        fsContext.activeFs = FsContext.ACTIVE_FS.valueOf(fs.toUpperCase())
-    }
+    fun switch(fs: String) = fsContext.switch(fs)
 }

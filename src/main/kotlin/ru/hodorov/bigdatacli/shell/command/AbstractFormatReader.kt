@@ -4,12 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.apache.hadoop.fs.Path
-import ru.hodorov.bigdatacli.extends.append
-import ru.hodorov.bigdatacli.extends.toHadoopPath
+import ru.hodorov.bigdatacli.extension.append
+import ru.hodorov.bigdatacli.extension.toHadoopPath
 import ru.hodorov.bigdatacli.model.mapper.SchemaMapper
 import ru.hodorov.bigdatacli.service.FsService
 import ru.hodorov.bigdatacli.service.TerminalService
-import ru.hodorov.bigdatacli.utils.FsContext
+import ru.hodorov.bigdatacli.fs.FsContext
 
 class LimitReachedException : Exception()
 
@@ -18,9 +18,9 @@ class LimitReachedException : Exception()
 // T - Type
 // ST - SubType
 abstract class AbstractFormatReader<R, S, T, ST>(
-    private val fsService: FsService,
+    val fsService: FsService,
     private val fsContext: FsContext,
-    private val terminal: TerminalService,
+    val terminal: TerminalService,
     private val mapper: SchemaMapper<R, S, T, ST>,
     private val fileSuffix: String
 ) {

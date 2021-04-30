@@ -1,4 +1,4 @@
-package ru.hodorov.bigdatacli.extends
+package ru.hodorov.bigdatacli.extension
 
 import org.apache.hadoop.fs.Path
 import java.net.URI

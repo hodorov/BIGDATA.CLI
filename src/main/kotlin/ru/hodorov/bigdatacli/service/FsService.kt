@@ -5,7 +5,7 @@ import org.apache.hadoop.fs.FileStatus
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.Path
 import org.springframework.stereotype.Service
-import ru.hodorov.bigdatacli.utils.FsContext
+import ru.hodorov.bigdatacli.fs.FsContext
 import java.util.*
 import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.RecursiveTask

@@ -5,6 +5,7 @@ plugins {
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     kotlin("jvm") version "1.4.31"
     kotlin("plugin.spring") version "1.4.31"
+    kotlin("kapt") version "1.4.31"
 }
 
 group = "ru.hodorov"
@@ -35,6 +36,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-aop")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
 
     // CLI
     implementation("org.springframework.shell:spring-shell-starter:$springShellVersion")

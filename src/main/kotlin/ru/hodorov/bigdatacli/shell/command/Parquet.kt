@@ -14,7 +14,7 @@ import org.springframework.shell.standard.ShellOption
 import ru.hodorov.bigdatacli.model.mapper.SchemaMapper
 import ru.hodorov.bigdatacli.service.FsService
 import ru.hodorov.bigdatacli.service.TerminalService
-import ru.hodorov.bigdatacli.utils.FsContext
+import ru.hodorov.bigdatacli.fs.FsContext
 
 @ShellComponent
 class Parquet(
